@@ -25,7 +25,7 @@
         @Html.TextBoxFor(m => m.NoInStock, new { @class = "form-control" })
         @Html.ValidationMessageFor(m => m.NoInStock)
     </div>
-    @Html.HiddenFor(m=> m.Id)
+    @Html.HiddenFor(m=> m.Id,new {@value=Model.Id })
     @Html.AntiForgeryToken()
     <button type="submit" class="btn btn-primary"> Save </button>
 }

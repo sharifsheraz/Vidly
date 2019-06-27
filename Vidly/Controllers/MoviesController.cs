@@ -36,7 +36,8 @@ namespace Vidly.Controllers
         }
         public ActionResult New()
         {
-            return View("MovieForm");
+            Movie model = new Movie();
+            return View("MovieForm",model);
         }
         public ActionResult Edit(int id)
         {
