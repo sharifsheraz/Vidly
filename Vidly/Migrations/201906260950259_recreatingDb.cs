@@ -35,6 +35,9 @@ namespace Vidly.Migrations
             
             CreateTable(
                 "dbo.Movies",
+
+
+
                 c => new
                     {
                         Id = c.Int(nullable: false, identity: true),
