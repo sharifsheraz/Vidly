@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
 using Vidly.Models;
-namespace Vidly.View_Models
+namespace Vidly.ViewModels
 {
     public class CustomerFormViewModel
     {
