@@ -6,15 +6,18 @@ using System.Net.Http;
 using System.Web.Http;
 using Vidly.Dtos;
 using Vidly.Models;
+using Vidly.Repositories;
+using Vidly.Repositories.Persistent;
 
 namespace Vidly.Controllers.API
 {
     public class RentalsController : ApiController
     {
         private ApplicationDbContext _context;
+        private UnitOfWork unitOfWork;
         public RentalsController()
         {
-            _context = new ApplicationDbContext();
+            unitOfWork = new UnitOfWork(new ApplicationDbContext());
         }
         // GET api/<controller>
         [HttpPost]
@@ -22,26 +25,13 @@ namespace Vidly.Controllers.API
         {
             if (!ModelState.IsValid)
                 return BadRequest();
-            var customer = _context.Customers.Single(c => c.Id == rentalDto.CustomerId);
-            var movies = _context.Movies.Where(m => rentalDto.MovieIds.Contains(m.Id)).ToList();
-            foreach(var movie in movies)
-            {
-                if (movie.NumberAvailable == 0)
-                    return BadRequest("Movie not available.");
 
-                var rental = new Rental
-                {
-                    Customer=customer,
-                    Movie=movie,
-                    DateRented=DateTime.Now 
-                };
-                _context.Rentals.Add(rental);
-                movie.NumberAvailable -= 1;
-            }
-            _context.SaveChanges();
+            int errorCode=unitOfWork.Rentals.CreateNewRentals(rentalDto);
+            unitOfWork.Complete();
+            if (errorCode == -1)
+                return BadRequest();
             return Ok();
 
         }
-
     }
 }

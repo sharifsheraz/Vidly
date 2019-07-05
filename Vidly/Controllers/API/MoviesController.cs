@@ -3,42 +3,36 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Net;
 using System.Web.Http;
 using Vidly.Dtos;
 using Vidly.Models;
+using Vidly.Repositories;
+using Vidly.Repositories.Persistent;
 
 namespace Vidly.Controllers.Api
 {
     public class MoviesController : ApiController
     {
-        private ApplicationDbContext _context;
+        private UnitOfWork unitOfWork;
 
         public MoviesController()
         {
-            _context = new ApplicationDbContext();
+            unitOfWork= new UnitOfWork(new ApplicationDbContext());
         }
 
         public IHttpActionResult GetMovies(string query = null)
         {
-            var moviesQuery = _context.Movies
-            .Include(m => m.Genre);
-            if (!String.IsNullOrWhiteSpace(query))
-                moviesQuery = moviesQuery.Where(m => m.Name.Contains(query));
-            var moviesDtos = moviesQuery
-                .ToList()
-                .Select(Mapper.Map<Movie, MovieDto>);
-
-            return Ok(moviesDtos);
+            return Ok(unitOfWork.Movies.GetMoviesWithQuery(query));
         }
 
         public IHttpActionResult GetMovie(int id)
         {
-            var movie = _context.Movies.SingleOrDefault(c => c.Id == id);
-
+            var movie = unitOfWork.Movies.GetMovieWithId(id);
             if (movie == null)
                 return NotFound();
+            return Ok(movie);
 
-            return Ok(Mapper.Map<Movie, MovieDto>(movie));
         }
 
         [HttpPost]
@@ -47,13 +41,11 @@ namespace Vidly.Controllers.Api
         {
             if (!ModelState.IsValid)
                 return BadRequest();
+            int movieId = unitOfWork.Movies.CreateMovie(movieDto);
 
-            var movie = Mapper.Map<MovieDto, Movie>(movieDto);
-            _context.Movies.Add(movie);
-            _context.SaveChanges();
+            unitOfWork.Complete();
 
-            movieDto.Id = movie.Id;
-            return Created(new Uri(Request.RequestUri + "/" + movie.Id), movieDto);
+            return Created(new Uri(Request.RequestUri + "/" + movieId), movieDto);
         }
 
         [HttpPut]
@@ -63,14 +55,10 @@ namespace Vidly.Controllers.Api
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            var movieInDb = _context.Movies.SingleOrDefault(c => c.Id == id);
-
-            if (movieInDb == null)
-                return NotFound();
-
-            Mapper.Map(movieDto, movieInDb);
-
-            _context.SaveChanges();
+            if (!ModelState.IsValid)
+                throw new HttpResponseException(HttpStatusCode.BadRequest);
+            unitOfWork.Movies.UpdateMovie(id, movieDto);
+            unitOfWork.Complete();
 
             return Ok();
         }
@@ -79,14 +67,8 @@ namespace Vidly.Controllers.Api
         [Authorize(Roles = RoleName.canManageMovies)]
         public IHttpActionResult DeleteMovie(int id)
         {
-            var movieInDb = _context.Movies.SingleOrDefault(c => c.Id == id);
-
-            if (movieInDb == null)
-                return NotFound();
-
-            _context.Movies.Remove(movieInDb);
-            _context.SaveChanges();
-
+            unitOfWork.Customers.DeleteCustomer(id);
+            unitOfWork.Complete();
             return Ok();
         }
     }

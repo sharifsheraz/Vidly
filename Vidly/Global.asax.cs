@@ -16,8 +16,12 @@ namespace Vidly
         protected void Application_Start()
         {
             Mapper.Initialize(c => c.AddProfile<MappingProfile>());
+            UnityConfig.RegisterComponents();
+            DependencyResolver.SetResolver(new Unity.Mvc5.UnityDependencyResolver(UnityConfig.Container));
             GlobalConfiguration.Configure(WebApiConfig.Register);
             AreaRegistration.RegisterAllAreas();
+            
+
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);

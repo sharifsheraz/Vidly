@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
 using Vidly.Models;
+using Vidly.Repositories;
 using Vidly.ViewModels;
 
 namespace Vidly.Controllers

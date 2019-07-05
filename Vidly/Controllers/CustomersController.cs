@@ -6,6 +6,8 @@ using System.Web.Mvc;
 using Vidly.Models;
 using System.Data.Entity;
 using Vidly.ViewModels;
+using Vidly.Repositories;
+using Vidly.Repositories.Persistent;
 
 namespace Vidly.Controllers
 {
@@ -30,7 +32,7 @@ namespace Vidly.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
 
-        public ActionResult Save(/*[Bind(Exclude="Id")]*/Customer customer)
+        public ActionResult Save(Customer customer)
         {
             var errors = ModelState.Values.SelectMany(v => v.Errors);
             foreach (var error in errors)
